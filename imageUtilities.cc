@@ -25,9 +25,9 @@ int Gaussian3_3 (cv::Mat & src, cv::Mat & dst) {
         
         for ( int h = 1; h < s.height-1; h++) {
                 for (int w = 1; w < s.width-1; w++) {
-                        bImage[h][w] =  sImage[h-1][w-1]/16 + sImage[h-1][w]/8 + sImage[h-1][w+1]/16 + 
-                                        sImage[h][w-1]/8    + sImage[h][w]/4   + sImage[h][w+1]/8    +
-                                        sImage[h+1][w-1]/16 + sImage[h+1][w]/8 + sImage[h+1][w+1]/16;
+                        bImage[h][w] =  (float)sImage[h-1][w-1]/16 + (float)sImage[h-1][w]/8 + (float)sImage[h-1][w+1]/16 + 
+                                        (float)sImage[h][w-1]/8    + (float)sImage[h][w]/4   + (float)sImage[h][w+1]/8    +
+                                        (float)sImage[h+1][w-1]/16 + (float)sImage[h+1][w]/8 + (float)sImage[h+1][w+1]/16;
                 }
         }
 
