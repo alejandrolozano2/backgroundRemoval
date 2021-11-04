@@ -20,6 +20,7 @@ int main(int argc, char * argv[]) {
         size.height = 480;
         size.width = 640;
         cv::Mat grayMat(size, CV_8U);
+        cv::Mat blurMat(size, CV_8U);
 
         if (!cam.isOpened()) return -1;
         /*Save JPG of first capture*/
@@ -29,18 +30,15 @@ int main(int argc, char * argv[]) {
         cv::Size s = colorMat.size();
         uint32_t imageSize = s.height * s.width;
 
-/*****************************Build Edges Test****************************************/
-
-/*************************************************************************************/
-
         for(;;) {
-                
-                
+                        
                 auto start = high_resolution_clock::now();
                 cam >> colorMat;
                 bgr2grey(colorMat, grayMat);
+                Gaussian3_3(grayMat, blurMat);
                 imshow("Color", colorMat);
                 imshow("Gray", grayMat);
+                imshow("Blur", blurMat);
                 auto stop = high_resolution_clock::now();
                 auto duration = duration_cast<microseconds>(stop - start);
                 cout << duration.count() << " Microseconds " << endl;    

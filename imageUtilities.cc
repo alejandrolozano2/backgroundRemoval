@@ -1,7 +1,7 @@
 
 #include "imageUtilities.h"
 
-
+/*Own BGR to Gray*/
 int bgr2grey (cv::Mat & src, cv::Mat & dst) {
         cv::Size s = src.size();
 
@@ -11,6 +11,23 @@ int bgr2grey (cv::Mat & src, cv::Mat & dst) {
                 for (int w = 0; w < s.width; w++) {
                         *gImage++ = (data->blue* 0.114 + data->green* 0.587 + data->red* 0.299);
                         data++;
+                }
+        }
+
+}
+
+/*Gaussian 3x3 Blur*/
+int Gaussian3_3 (cv::Mat & src, cv::Mat & dst) {
+        cv::Size s = src.size();
+
+        uint8_t (* bImage)[s.width] = (uint8_t (*)[s.width])dst.ptr<uint8_t>(0);
+        uint8_t (* sImage)[s.width] = (uint8_t (*)[s.width])src.ptr<uint8_t>(0);
+        
+        for ( int h = 1; h < s.height-1; h++) {
+                for (int w = 1; w < s.width-1; w++) {
+                        bImage[h][w] =  sImage[h-1][w-1]/16 + sImage[h-1][w]/8 + sImage[h-1][w+1]/16 + 
+                                        sImage[h][w-1]/8    + sImage[h][w]/4   + sImage[h][w+1]/8    +
+                                        sImage[h+1][w-1]/16 + sImage[h+1][w]/8 + sImage[h+1][w+1]/16;
                 }
         }
 
