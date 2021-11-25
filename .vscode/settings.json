@@ -7,6 +7,12 @@
         "cstdlib": "cpp",
         "iostream": "cpp",
         "chrono": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "type_traits": "cpp",
+        "list": "cpp"
     }
 }

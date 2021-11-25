@@ -6,11 +6,16 @@
 #include <cstdlib>
 #include <chrono>
 
-
+#define N_FRAMES 10
 using namespace cv;
 using namespace std;
 using namespace std::chrono;
 
+struct RGB_u32 {
+   uint32_t blue;
+   uint32_t green;
+   uint32_t red;
+ };
 
 int main(int argc, char * argv[]) {
 
@@ -20,31 +25,105 @@ int main(int argc, char * argv[]) {
         size.height = 480;
         size.width = 640;
         cv::Mat grayMat(size, CV_8U);
+        cv::Mat templateImage , outMatch;
         cv::Mat blurMat(size, CV_8U);
         cv::Mat sobelMat(size, CV_8U);
+        cv::Mat sobelAngle(size, CV_64F);
+        cv::Mat nThreshold(size, CV_8U);
+        cv::Mat out(size, CV_8U);
 
         if (!cam.isOpened()) return -1;
         /*Save JPG of first capture*/
-        //cam >> colorMat;
+        cam >> colorMat;
         //imwrite("Prueba.jpg", colorMat);
         
         cv::Size s = colorMat.size();
         uint32_t imageSize = s.height * s.width;
+        uint8_t in = 1;
+        uint8_t outs = 2;
+        uint8_t step = 1;
+        uint8_t delta = (outs - in)/step;
+        /*
+        uint32_t * lMin = new uint32_t[s.height];
+        uint32_t * rMax = new uint32_t[s.height];
+        uint32_t * tMin = new uint32_t[s.width];
+        */
+        uint32_t  lMin[s.height];
+        uint32_t  rMax[s.height];
+        uint32_t  tMin[s.width];
 
+        uint32_t * parents = new uint32_t[imageSize];
+        uint32_t * ranks = new uint32_t[imageSize];
+        RGB_u32 * suma = nullptr;
+        uint32_t * count = nullptr;
+        uint32_t nEdges = imageSize * (2*delta) - (s.width + s.height)*delta;
+        uint32_t * edges = new uint32_t[nEdges *3];
+        uint32_t * sortedEdges= new uint32_t[nEdges *3]; 
+        uint32_t threshold = 7;
+        uint32_t mergedCount, maxLeader;
+
+        double minVal; 
+        double maxVal; 
+        Point minLoc; 
+        Point maxLoc;
+
+        uint8_t i = 0;
+        templateImage  = imread("ojos.jpg", 0);
+        imshow("template", templateImage);
         for(;;) {
                         
                 auto start = high_resolution_clock::now();
                 cam >> colorMat;
+
+#if 1
                 bgr2grey(colorMat, grayMat);
                 Gaussian3_3(grayMat, blurMat);
-                Sobel(blurMat, sobelMat);
+                Sobel(blurMat, sobelMat, sobelAngle);
+                mthreshold(sobelMat, nThreshold, 19, 20, (uint8_t)maxVal);
+                matchTemplate(grayMat, templateImage, outMatch, TM_CCOEFF_NORMED);
+
+		double minVal; double maxVal; 
+		cv::Point minLoc, maxLoc, matchLoc;
+		cv::minMaxLoc(outMatch, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat() );
+		matchLoc = maxLoc;
+#if 0
+		cv::rectangle(
+			colorMat,
+			matchLoc,
+			cv::Point(matchLoc.x + templateImage.cols , matchLoc.y + templateImage.rows),
+			CV_RGB(255,0,0),
+			3);
+#endif              
+                for (int ii = 0 ; ii < s.height; ii++ )
+                        lMin[ii] = s.width; 
+                memset(rMax, 0, sizeof(uint32_t)*s.height);
+                for (int ii = 0 ; ii < s.width; ii++ )
+                        tMin[ii] = s.height;
+               
+
+                uint8_t * pEdges = nThreshold.ptr<uint8_t>(0);
+                int32_t search = 0;
+                pEdges += (matchLoc.y + templateImage.rows) * s.width + matchLoc.x;
+                while (search < 70) {
+                        search++; 
+                        DFS(nThreshold, out,
+                         (matchLoc.y ) * s.width + matchLoc.x - search,
+                          307199,
+                          lMin, rMax, tMin);
+                }
+
+                fillOutside(colorMat, out);              
+#endif
+                
                 imshow("Color", colorMat);
-                imshow("Gray", grayMat);
-                imshow("Blur", blurMat);
                 imshow("Sobel", sobelMat);
+                imshow("Threshold", nThreshold);
+                imshow("DFS", out);
+                out = 0;
+
                 auto stop = high_resolution_clock::now();
                 auto duration = duration_cast<microseconds>(stop - start);
-                cout << duration.count() << " Microseconds " << endl;    
+                cout << duration.count() << " us"  << endl;    
                 
                 char c=(char)waitKey(25);
                 if(c==27)
