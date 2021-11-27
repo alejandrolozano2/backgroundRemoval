@@ -288,8 +288,7 @@ void fillOutside(cv::Mat & colorOut, cv::Mat edges) {
 
 }
 
-bool DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end, 
-        uint32_t * lM, uint32_t * rM, uint32_t * tM) {
+bool DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end) {
         #define WHITE  255
         cv::Size s = image.size();
         uint8_t * sImage = image.ptr<uint8_t>(0);
@@ -314,12 +313,6 @@ bool DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end,
                 if (*(outImage + cPixel) == 0) {
 
                         *(outImage + cPixel) = WHITE;
-                        if (lM[row] > col) 
-                                lM[row] = col;
-                        if (rM[row] < col) 
-                                rM[row] = col;
-                        if (tM[col] > row) 
-                                tM[col] = row;
 
                         if ( row - 1 >= 0 ) {
                                 if ( *(sImage + cPixel - s.width) == WHITE)

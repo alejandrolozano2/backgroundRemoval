@@ -21,7 +21,7 @@ struct RGB_u32 {
 int main(int argc, char * argv[]) {
 
         VideoCapture cam(0);
-        cv::Mat colorMat;
+        cv::Mat colorMat, color;
         cv::Size size;
         size.height = 480;
         size.width = 640;
@@ -36,14 +36,9 @@ int main(int argc, char * argv[]) {
         if (!cam.isOpened()) return -1;
         /*Save JPG of first capture*/
         cam >> colorMat;
-        
+
         cv::Size s = colorMat.size();
         uint32_t imageSize = s.height * s.width;
-
-        uint32_t * lMin = new uint32_t[s.height];
-        uint32_t * rMax = new uint32_t[s.height];
-        uint32_t * tMin = new uint32_t[s.width];
-
         uint32_t threshold = 7;
 
         double minVal; 
@@ -58,7 +53,7 @@ int main(int argc, char * argv[]) {
                         
                 auto start = high_resolution_clock::now();
                 cam >> colorMat;
-
+                color = colorMat.clone();
 #if 1
                 bgr2grey(colorMat, grayMat);
                 Gaussian3_3(grayMat, blurMat);
@@ -77,13 +72,7 @@ int main(int argc, char * argv[]) {
 			cv::Point(matchLoc.x + templateImage.cols , matchLoc.y + templateImage.rows),
 			CV_RGB(255,0,0),
 			3);
-#endif              
-                for (int ii = 0 ; ii < s.height; ii++ )
-                        lMin[ii] = s.width; 
-                memset(rMax, 0, sizeof(uint32_t)*s.height);
-                for (int ii = 0 ; ii < s.width; ii++ )
-                        tMin[ii] = s.height;
-               
+#endif                             
 
                 uint8_t * pEdges = nThreshold.ptr<uint8_t>(0);
                 int32_t search = 0;
@@ -92,15 +81,14 @@ int main(int argc, char * argv[]) {
                         search++; 
                         DFS(nThreshold, out,
                          (matchLoc.y ) * s.width + matchLoc.x - search,
-                          s.width * s.height - 1,
-                          lMin, rMax, tMin);
+                          s.width * s.height - 1);
                 }
 
                 fillOutside(colorMat, out);              
 #endif
-                
+                imshow("Original", color);
                 imshow("Color", colorMat);
-                imshow("Sobel", sobelMat);
+                imshow("Edges", sobelMat);
                 imshow("Threshold", nThreshold);
                 imshow("DFS", out);
                 out = 0;
