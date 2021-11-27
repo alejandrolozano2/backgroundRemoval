@@ -238,7 +238,7 @@ bool isPixelInside(uint32_t row, uint32_t col, uint32_t * lM,
         return false;
 }
 
-void fillOutside(cv::Mat & colorOut, cv::Mat edges) {
+void fillOutside(cv::Mat & colorOut, cv::Mat & edges) {
         cv::Size s = edges.size();
 
         RGB * out = colorOut.ptr<RGB>(0);
@@ -288,8 +288,9 @@ void fillOutside(cv::Mat & colorOut, cv::Mat edges) {
 
 }
 
-bool DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end) {
+uint32_t DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end) {
         #define WHITE  255
+        uint32_t pixelCount = 0;
         cv::Size s = image.size();
         uint8_t * sImage = image.ptr<uint8_t>(0);
         uint8_t * outImage = out.ptr<uint8_t>(0);
@@ -305,13 +306,13 @@ bool DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end) {
                 stack.pop_front();
 
                 if (cPixel == end)
-                        return true;
+                        return pixelCount;
 
                 row = cPixel / s.width;
                 col = cPixel % s.width;
 
                 if (*(outImage + cPixel) == 0) {
-
+                        pixelCount += 1;
                         *(outImage + cPixel) = WHITE;
 
                         if ( row - 1 >= 0 ) {
@@ -337,5 +338,26 @@ bool DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end) {
 
         }
 
-        return false;
+        return pixelCount;
+}
+
+void getMask(cv::Mat & edges, cv::Mat & person, cv::Mat & mask) {
+        #define WHITE  255
+        cv::Size s = edges.size();
+
+        mask = edges.clone();
+        uint8_t * pp = person.ptr<uint8_t>(0);
+        uint8_t * mp = mask.ptr<uint8_t>(0);
+        uint8_t * ep = edges.ptr<uint8_t>(0);
+
+
+        for (uint32_t row = 0; row < s.height; row++) {
+                for (uint32_t col = 0; col < s.width; col++, pp++, mp++, ep++ ) {
+                        if (*pp == WHITE) {
+                                *mp = 0;
+                        } else {
+                                *mp = *ep;
+                        }
+                }
+        }
 }

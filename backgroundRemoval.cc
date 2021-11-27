@@ -6,8 +6,9 @@
 #include <cstdlib>
 #include <chrono>
 
-#define N_FRAMES 10
-#define SEARCH_RANGE 70
+#define N_FRAMES        10
+#define SEARCH_RANGE    70
+#define PIXEL_COUNT     10000
 using namespace cv;
 using namespace std;
 using namespace std::chrono;
@@ -18,8 +19,15 @@ struct RGB_u32 {
    uint32_t red;
  };
 
+
+ typedef enum {
+         eNotInitialized  = 0,
+         eInitialized,
+ }eState;
+
 int main(int argc, char * argv[]) {
 
+        eState state = eNotInitialized;
         VideoCapture cam(0);
         cv::Mat colorMat, color;
         cv::Size size;
@@ -31,6 +39,7 @@ int main(int argc, char * argv[]) {
         cv::Mat sobelMat(size, CV_8U);
         cv::Mat sobelAngle(size, CV_64F);
         cv::Mat nThreshold(size, CV_8U);
+        cv::Mat mask(size, CV_8U);
         cv::Mat out(size, CV_8U);
 
         if (!cam.isOpened()) return -1;
@@ -75,13 +84,20 @@ int main(int argc, char * argv[]) {
 #endif                             
 
                 uint8_t * pEdges = nThreshold.ptr<uint8_t>(0);
-                int32_t search = 0;
+                int32_t search = 0, pixelCount = 0;
                 pEdges += (matchLoc.y + templateImage.rows) * s.width + matchLoc.x;
                 while (search < SEARCH_RANGE) {
                         search++; 
-                        DFS(nThreshold, out,
+                        pixelCount += DFS(nThreshold, out,
                          (matchLoc.y ) * s.width + matchLoc.x - search,
                           s.width * s.height - 1);
+
+                        if (pixelCount > PIXEL_COUNT && state == eNotInitialized) {
+                                state = eInitialized;
+                                /*Get mask*/
+                                fillOutside(colorMat, out);
+                                getMask(nThreshold, out, mask);
+                        } 
                 }
 
                 fillOutside(colorMat, out);              
@@ -90,12 +106,13 @@ int main(int argc, char * argv[]) {
                 imshow("Color", colorMat);
                 imshow("Edges", sobelMat);
                 imshow("Threshold", nThreshold);
-                imshow("DFS", out);
+                imshow("Mask", mask);
+                imshow("Out", out);
                 out = 0;
 
                 auto stop = high_resolution_clock::now();
                 auto duration = duration_cast<microseconds>(stop - start);
-                cout << duration.count() << " us"  << endl;    
+                cout << duration.count() << " us" << "pixel count " << pixelCount << endl;    
                 
                 char c=(char)waitKey(25);
                 if(c==27)
