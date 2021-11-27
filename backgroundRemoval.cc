@@ -7,6 +7,7 @@
 #include <chrono>
 
 #define N_FRAMES 10
+#define SEARCH_RANGE 70
 using namespace cv;
 using namespace std;
 using namespace std::chrono;
@@ -35,32 +36,15 @@ int main(int argc, char * argv[]) {
         if (!cam.isOpened()) return -1;
         /*Save JPG of first capture*/
         cam >> colorMat;
-        //imwrite("Prueba.jpg", colorMat);
         
         cv::Size s = colorMat.size();
         uint32_t imageSize = s.height * s.width;
-        uint8_t in = 1;
-        uint8_t outs = 2;
-        uint8_t step = 1;
-        uint8_t delta = (outs - in)/step;
-        /*
+
         uint32_t * lMin = new uint32_t[s.height];
         uint32_t * rMax = new uint32_t[s.height];
         uint32_t * tMin = new uint32_t[s.width];
-        */
-        uint32_t  lMin[s.height];
-        uint32_t  rMax[s.height];
-        uint32_t  tMin[s.width];
 
-        uint32_t * parents = new uint32_t[imageSize];
-        uint32_t * ranks = new uint32_t[imageSize];
-        RGB_u32 * suma = nullptr;
-        uint32_t * count = nullptr;
-        uint32_t nEdges = imageSize * (2*delta) - (s.width + s.height)*delta;
-        uint32_t * edges = new uint32_t[nEdges *3];
-        uint32_t * sortedEdges= new uint32_t[nEdges *3]; 
         uint32_t threshold = 7;
-        uint32_t mergedCount, maxLeader;
 
         double minVal; 
         double maxVal; 
@@ -104,11 +88,11 @@ int main(int argc, char * argv[]) {
                 uint8_t * pEdges = nThreshold.ptr<uint8_t>(0);
                 int32_t search = 0;
                 pEdges += (matchLoc.y + templateImage.rows) * s.width + matchLoc.x;
-                while (search < 70) {
+                while (search < SEARCH_RANGE) {
                         search++; 
                         DFS(nThreshold, out,
                          (matchLoc.y ) * s.width + matchLoc.x - search,
-                          307199,
+                          s.width * s.height - 1,
                           lMin, rMax, tMin);
                 }
 
