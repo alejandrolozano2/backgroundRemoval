@@ -4,7 +4,7 @@
 #include <iostream>
 
 using namespace std;
-
+#define WHITE  255
 /*Own BGR to Gray*/
 int bgr2grey (cv::Mat & src, cv::Mat & dst) {
         cv::Size s = src.size();
@@ -252,17 +252,67 @@ void fillOutside(cv::Mat & colorOut, cv::Mat & edges) {
 
                         uint8_t * p = edge + (row * s.width) + col;
                         if (row == 0 || col == 0 || row == s.height || col == s.width) {
-                                if (*p == 0) out->blue = out->green = out->red = 0;
+                                if (*p == 0) out->blue = out->green = out->red = WHITE;
                                 continue;
                         }
 
                         if (!found && *p == 0) {
-                                out->blue = out->green = out->red = 0;
+                                out->blue = out->green = out->red = WHITE;
                                 continue;
                         }
 
                         if (found && *p == 0 && *(p - s.width)== 0) {
-                                out->blue = out->green = out->red = 0;
+                                out->blue = out->green = out->red = WHITE;
+                                found = false;
+                                continue;
+                        }
+
+                        if (found && *(p - s.width)== WHITE && *p == 0) {
+                                continue;
+                        }
+
+                        if (found && *(p - s.width)== WHITE && *p == WHITE) {
+                                for (uint32_t i = 0; i < col - startFound; i++) *(p-i) = 255;
+                                startFound = col;
+                                continue;
+                        }
+                        
+                        if (*p == 255 ) {
+                                found = true;
+                                startFound = col;
+                                continue;
+                        }
+
+                }
+        }
+
+}
+
+
+void fillMask(cv::Mat & edges) {
+        cv::Size s = edges.size();
+
+        uint8_t * edge = edges.ptr<uint8_t>(0);
+        bool found =  false;
+        uint32_t startFound = 0;
+        for (uint32_t row = 0; row < s.height; row++) {
+                found = false;
+                startFound = 0;
+                for (uint32_t col = 0; col < s.width; col++) {
+
+                        uint8_t * p = edge + (row * s.width) + col;
+                        if (row == 0 || col == 0 || row == s.height || col == s.width) {
+                                
+                                continue;
+                        }
+
+                        if (!found && *p == 0) {
+                                
+                                continue;
+                        }
+
+                        if (found && *p == 0 && *(p - s.width)== 0) {
+                                
                                 found = false;
                                 continue;
                         }
@@ -288,8 +338,29 @@ void fillOutside(cv::Mat & colorOut, cv::Mat & edges) {
 
 }
 
+void removeMask(cv::Mat & colorOut, cv::Mat & edges, cv::Mat & mask, cv::Mat & Image) {
+        #define THRESHOLD 30
+        cv::Size s = edges.size();
+        RGB * out = colorOut.ptr<RGB>(0);
+        RGB * img = Image.ptr<RGB>(0);
+        uint8_t * edge = edges.ptr<uint8_t>(0);
+        uint8_t * msk = mask.ptr<uint8_t>(0);
+
+        for (uint32_t row = 0; row < s.height; row++) {
+                for (uint32_t col = 0; col < s.width; col++, out++, img++, msk++, edge++ ) {
+
+                        if (*edge == 255 && *msk == 255) {
+                                if (bgrDiff(out,img) < THRESHOLD ) {
+                                        out->blue = out->green = out->red = WHITE;
+                                }
+                        }
+                }
+        }
+
+}
+
 uint32_t DFS(cv::Mat & image, cv::Mat & out, uint32_t start, uint32_t end) {
-        #define WHITE  255
+        
         uint32_t pixelCount = 0;
         cv::Size s = image.size();
         uint8_t * sImage = image.ptr<uint8_t>(0);

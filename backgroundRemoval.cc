@@ -29,7 +29,7 @@ int main(int argc, char * argv[]) {
 
         eState state = eNotInitialized;
         VideoCapture cam(0);
-        cv::Mat colorMat, color;
+        cv::Mat colorMat, color, colorMask;
         cv::Size size;
         size.height = 480;
         size.width = 640;
@@ -40,6 +40,7 @@ int main(int argc, char * argv[]) {
         cv::Mat sobelAngle(size, CV_64F);
         cv::Mat nThreshold(size, CV_8U);
         cv::Mat mask(size, CV_8U);
+        cv::Mat filledMask(size, CV_8U);
         cv::Mat out(size, CV_8U);
 
         if (!cam.isOpened()) return -1;
@@ -97,17 +98,23 @@ int main(int argc, char * argv[]) {
                                 /*Get mask*/
                                 fillOutside(colorMat, out);
                                 getMask(nThreshold, out, mask);
+                                fillMask(mask);
+                                /*Color mask using first frame*/
+                                colorMask = color.clone();
                         } 
                 }
 
-                fillOutside(colorMat, out);              
+                fillOutside(colorMat, out);   
+                removeMask(colorMat, out, mask, colorMask);           
 #endif
+                if (state == eInitialized)
+                        imshow("1st Image", colorMask);
                 imshow("Original", color);
-                imshow("Color", colorMat);
-                imshow("Edges", sobelMat);
-                imshow("Threshold", nThreshold);
+                imshow("Edges", nThreshold);
                 imshow("Mask", mask);
-                imshow("Out", out);
+                imshow("DFS", out);
+                imshow("Out", colorMat);
+                
                 out = 0;
 
                 auto stop = high_resolution_clock::now();

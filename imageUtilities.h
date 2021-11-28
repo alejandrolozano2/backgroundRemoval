@@ -32,7 +32,9 @@ uint32_t correlation(cv::Mat & src, cv::Mat & shape, uint32_t * row, uint32_t * 
 uint32_t buildEdges(cv::Mat & image, uint32_t (* e)[3], uint32_t in, uint32_t out , uint32_t step);
 bool isPixelInside(uint32_t row, uint32_t col, uint32_t * lM, uint32_t * rM, uint32_t * tM);
 void fillOutside(cv::Mat & colorOut, cv::Mat & edges);
+void removeMask(cv::Mat & colorOut, cv::Mat & edges, cv::Mat & mask, cv::Mat & Image);
 void getMask(cv::Mat & edges, cv::Mat & person, cv::Mat & mask);
+void fillMask(cv::Mat & edges);
 
 #endif
 
