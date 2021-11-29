@@ -36,6 +36,7 @@ int main(int argc, char * argv[]) {
         cv::Mat grayMat(size, CV_8U);
         cv::Mat templateImage , outMatch;
         cv::Mat blurMat(size, CV_8U);
+        cv::Mat blurMat2(size, CV_8U);
         cv::Mat sobelMat(size, CV_8U);
         cv::Mat sobelAngle(size, CV_64F);
         cv::Mat nThreshold(size, CV_8U);
@@ -67,7 +68,8 @@ int main(int argc, char * argv[]) {
 #if 1
                 bgr2grey(colorMat, grayMat);
                 Gaussian3_3(grayMat, blurMat);
-                Sobel(blurMat, sobelMat, sobelAngle);
+                Gaussian3_3(blurMat, blurMat2);
+                Sobel(blurMat2, sobelMat, sobelAngle);
                 mthreshold(sobelMat, nThreshold, 19, 20, (uint8_t)maxVal);
                 matchTemplate(grayMat, templateImage, outMatch, TM_CCOEFF_NORMED);
 
