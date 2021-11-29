@@ -34,6 +34,7 @@ int main(int argc, char * argv[]) {
         size.height = 480;
         size.width = 640;
         cv::Mat grayMat(size, CV_8U);
+        cv::Mat grayMat2(size, CV_8U);
         cv::Mat templateImage , outMatch;
         cv::Mat blurMat(size, CV_8U);
         cv::Mat blurMat2(size, CV_8U);
@@ -58,7 +59,7 @@ int main(int argc, char * argv[]) {
         Point maxLoc;
 
         uint8_t i = 0;
-        templateImage  = imread("ojos.jpg", 0);
+        templateImage  = imread("ojos2.png", 0);
         imshow("template", templateImage);
         for(;;) {
                         
@@ -69,7 +70,7 @@ int main(int argc, char * argv[]) {
                 bgr2grey(colorMat, grayMat);
                 Gaussian3_3(grayMat, blurMat);
                 Gaussian3_3(blurMat, blurMat2);
-                Sobel(blurMat2, sobelMat, sobelAngle);
+                Sobel(blurMat, sobelMat, sobelAngle);
                 mthreshold(sobelMat, nThreshold, 19, 20, (uint8_t)maxVal);
                 matchTemplate(grayMat, templateImage, outMatch, TM_CCOEFF_NORMED);
 
@@ -107,11 +108,24 @@ int main(int argc, char * argv[]) {
                 }
 
                 fillOutside(colorMat, out);   
-                removeMask(colorMat, out, mask, colorMask);           
+                removeMask(colorMat, out, mask, colorMask);  
+
+#if 1
+                if (state == eInitialized) {
+
+                        bgr2grey(colorMat, grayMat2);
+                        Gaussian3_3(grayMat2, blurMat);
+                        Gaussian3_3(blurMat, blurMat2);
+                        Gaussian3_3(blurMat2, blurMat);
+                        Sobel(blurMat, sobelMat, sobelAngle);
+                        mthreshold(sobelMat, nThreshold, 29, 30, (uint8_t)maxVal);  
+                        fillOutside(colorMat, nThreshold);
+                }
 #endif
-                if (state == eInitialized)
-                        imshow("1st Image", colorMask);
+#endif
+
                 imshow("Original", color);
+                imshow("Grey", grayMat2);
                 imshow("Edges", nThreshold);
                 imshow("Mask", mask);
                 imshow("DFS", out);
@@ -121,7 +135,7 @@ int main(int argc, char * argv[]) {
 
                 auto stop = high_resolution_clock::now();
                 auto duration = duration_cast<microseconds>(stop - start);
-                cout << duration.count() << " us" << "pixel count " << pixelCount << endl;    
+                cout << duration.count() << " us " << "pixel count " << pixelCount << endl;    
                 
                 char c=(char)waitKey(25);
                 if(c==27)

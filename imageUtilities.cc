@@ -339,7 +339,7 @@ void fillMask(cv::Mat & edges) {
 }
 
 void removeMask(cv::Mat & colorOut, cv::Mat & edges, cv::Mat & mask, cv::Mat & Image) {
-        #define THRESHOLD 40
+        #define THRESHOLD 35
         cv::Size s = edges.size();
         RGB * out = colorOut.ptr<RGB>(0);
         RGB * img = Image.ptr<RGB>(0);
@@ -353,9 +353,7 @@ void removeMask(cv::Mat & colorOut, cv::Mat & edges, cv::Mat & mask, cv::Mat & I
                                 if (bgrDiff(out,img) < THRESHOLD ) {
                                         out->blue = out->green = out->red = WHITE;
                                 }
-                        } else if (*msk == WHITE) {
-                                out->blue = out->green = out->red = WHITE;
-                        }
+                        } 
                 }
         }
 
