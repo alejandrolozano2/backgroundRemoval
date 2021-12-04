@@ -31,8 +31,8 @@ int main(int argc, char * argv[]) {
         VideoCapture cam(0);
         cv::Mat colorMat, color, colorMask;
         cv::Size size;
-        size.height = 480;
-        size.width = 640;
+        size.height = 720;
+        size.width = 1280;
         cv::Mat grayMat(size, CV_8U);
         cv::Mat grayMat2(size, CV_8U);
         cv::Mat templateImage , outMatch;
@@ -46,6 +46,8 @@ int main(int argc, char * argv[]) {
         cv::Mat out(size, CV_8U);
 
         if (!cam.isOpened()) return -1;
+        cam.set(CV_CAP_PROP_FRAME_WIDTH,1280);
+        cam.set(CV_CAP_PROP_FRAME_HEIGHT,720);  
         /*Save JPG of first capture*/
         cam >> colorMat;
 
@@ -69,7 +71,7 @@ int main(int argc, char * argv[]) {
 #if 1
                 bgr2grey(colorMat, grayMat);
                 Gaussian3_3(grayMat, blurMat);
-                Gaussian3_3(blurMat, blurMat2);
+                //Gaussian3_3(grayMat2, blurMat);
                 Sobel(blurMat, sobelMat, sobelAngle);
                 mthreshold(sobelMat, nThreshold, 19, 20, (uint8_t)maxVal);
                 matchTemplate(grayMat, templateImage, outMatch, TM_CCOEFF_NORMED);
@@ -113,13 +115,18 @@ int main(int argc, char * argv[]) {
 #if 1
                 if (state == eInitialized) {
 
-                        bgr2grey(colorMat, grayMat2);
-                        Gaussian3_3(grayMat2, blurMat);
-                        Gaussian3_3(blurMat, blurMat2);
-                        Gaussian3_3(blurMat2, blurMat);
-                        Sobel(blurMat, sobelMat, sobelAngle);
-                        mthreshold(sobelMat, nThreshold, 29, 30, (uint8_t)maxVal);  
-                        fillOutside(colorMat, nThreshold);
+                        for (int i = 0; i < 0; i++) {
+                                bgr2grey(colorMat, grayMat2);
+                                Gaussian3_3(grayMat2, blurMat);
+                                /*
+                                Gaussian3_3(blurMat, blurMat2);
+                                Gaussian3_3(blurMat2, blurMat);
+                                Gaussian3_3(blurMat, blurMat2);
+                                Gaussian3_3(blurMat2, blurMat);*/
+                                Sobel(blurMat, sobelMat, sobelAngle);
+                                mthreshold(sobelMat, nThreshold, 49, 50, (uint8_t)maxVal);  
+                                fillOutside(colorMat, nThreshold);
+                        }
                 }
 #endif
 #endif

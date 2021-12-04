@@ -5,6 +5,8 @@
 
 using namespace std;
 #define WHITE  255
+#define BLACK  0
+#define BACKGROUND  BLACK
 /*Own BGR to Gray*/
 int bgr2grey (cv::Mat & src, cv::Mat & dst) {
         cv::Size s = src.size();
@@ -252,17 +254,17 @@ void fillOutside(cv::Mat & colorOut, cv::Mat & edges) {
 
                         uint8_t * p = edge + (row * s.width) + col;
                         if (row == 0 || col == 0 || row == s.height || col == s.width) {
-                                if (*p == 0) out->blue = out->green = out->red = WHITE;
+                                if (*p == 0) out->blue = out->green = out->red = BACKGROUND;
                                 continue;
                         }
 
                         if (!found && *p == 0) {
-                                out->blue = out->green = out->red = WHITE;
+                                out->blue = out->green = out->red = BACKGROUND;
                                 continue;
                         }
 
                         if (found && *p == 0 && *(p - s.width)== 0) {
-                                out->blue = out->green = out->red = WHITE;
+                                out->blue = out->green = out->red = BACKGROUND;
                                 found = false;
                                 continue;
                         }
@@ -339,7 +341,7 @@ void fillMask(cv::Mat & edges) {
 }
 
 void removeMask(cv::Mat & colorOut, cv::Mat & edges, cv::Mat & mask, cv::Mat & Image) {
-        #define THRESHOLD 35
+        #define THRESHOLD 20
         cv::Size s = edges.size();
         RGB * out = colorOut.ptr<RGB>(0);
         RGB * img = Image.ptr<RGB>(0);
@@ -351,7 +353,7 @@ void removeMask(cv::Mat & colorOut, cv::Mat & edges, cv::Mat & mask, cv::Mat & I
 
                         if (*edge == 255 && *msk == 255) {
                                 if (bgrDiff(out,img) < THRESHOLD ) {
-                                        out->blue = out->green = out->red = WHITE;
+                                        out->blue = out->green = out->red = BACKGROUND;
                                 }
                         } 
                 }
